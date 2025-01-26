@@ -6,6 +6,7 @@ import productRouter from "./routes/productRouter.js";
 import jwt from "jsonwebtoken";
 import dotenv from "dotenv";
 import reviewRouter from "./routes/reviewRouter.js";
+import inquiryRouter from "./routes/InquiryRouter.js";
 
 dotenv.config();
 
@@ -46,10 +47,11 @@ connection.once("open",()=>{
 app.use("/api/users",userRouter);
 app.use("/api/products",productRouter);
 app.use("/api/reviews",reviewRouter);
+app.use("/api/inquiries",inquiryRouter);
 
 app.listen(3000,()=>{
     console.log("Server is running on port 3000");
 });
 
-//john.doe@example.com securepassword123 - customer
-//test@gmail.com 1234 - admin
+//test2@gmail.com 123 - customer
+//test1@gmail.com securepassword123 - admin

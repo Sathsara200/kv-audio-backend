@@ -1,3 +1,4 @@
+import Product from "../models/product.js";
 import Review from "../models/review.js";
 
 export function addReview(req,res){
@@ -104,3 +105,4 @@ export function approveReview(req,res){
         res.status(403).json({message: "You are not and admin. Only admins can approve the reviews" });
     }
 }
+
