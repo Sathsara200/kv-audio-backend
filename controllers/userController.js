@@ -72,3 +72,16 @@ export function isItCustomer(req){
 
     return isCustomer;
 }
+
+export async function getAllUsers(req,res){
+    if(isItAdmin(req)){
+        try{
+            const users = await User.find();
+            res.json(users);
+        }catch(e){
+            res.status(500).json({error: "Failed to get users"})
+        }
+    }else{
+      res.status(403).json({error: "Unauthorized"})  
+    }
+}
