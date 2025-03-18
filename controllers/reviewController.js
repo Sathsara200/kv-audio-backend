@@ -60,7 +60,7 @@ export function deleteReview
             ({error:"Review deletion failed"});
         });
 
-        return
+        return;
     }
 
     if(req.user.role == "customer"){

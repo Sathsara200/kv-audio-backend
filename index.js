@@ -20,3 +20,43 @@ app.use(bodyParser.json())
 app.use((req,res,next)=>{
     let token = req.header
     ("Authorization")
+
+    if (token!=null){
+        token = token.replace("Bearer ","")
+
+        jwt.verify(token, process.env.JWT_SECRET,
+        (err,decoded)=>{
+            if(!err){
+                req.user = decoded;
+            }
+        });
+    }
+    next()
+
+});
+
+let mongoUrl =  
+  process.env.MONGO_URL;
+
+mongoose.connect(mongoUrl)
+
+let connection = mongoose.connection
+
+connection.once("open",()=>{
+    console.log("MongoDB connection estabilished successfully")
+})
+
+
+app.use("/api/users",userRouter);
+app.use("/api/products",productRouter);
+app.use("/api/reviews",reviewRouter);
+app.use("/api/inquiries",inquiryRouter);
+app.use("/api/orders",orderRouter);
+
+app.listen(3000,()=>{
+    console.log("Server is running on port 3000");
+});
+
+//test2@gmail.com 123 - customer
+//test1@gmail.com securepassword123 - admin
+
