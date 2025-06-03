@@ -24,22 +24,28 @@ export function addReview(req,res){
     });
 }
 
-export async function getReviews(req,res){
-    
-    const user = req.user;
+export async function getReviews(req, res) {
+  const user = req.user; // May be undefined for guests
 
-    try{
-       if(user.role == "admin"){
-        const reviews = await Review.find();
-        res.json(reviews);
-       }else{
-        const reviews = await Review.find({isApproved : true});
-        res.json(reviews);
-       }  
-    }catch(error){
-        res.status(500).json({error:"Failed to get reviews"});
+  try {
+    if (user?.role === "admin") {
+      // Admin sees all reviews
+      const reviews = await Review.find();
+      return res.json(reviews);
+    } else if (user) {
+      // Logged-in non-admin sees only approved
+      const reviews = await Review.find({ isApproved: true });
+      return res.json(reviews);
+    } else {
+      // Guest user sees only approved reviews
+      const reviews = await Review.find({ isApproved: true });
+      return res.json(reviews);
     }
+  } catch (error) {
+    return res.status(500).json({ error: "Failed to get reviews" });
+  }
 }
+
 
 export function deleteReview
 (req,res){
