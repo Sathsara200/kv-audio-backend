@@ -56,8 +56,8 @@ export function deleteReview
         ({message:"Please login and try again"});
         return
     }
-
-    if(req.user == "admin"){
+    
+    if(req.user.role == "admin"){
         Review.deleteOne
         ({email:email}).then(()=>{
             res.json({message:"Review deleted successfully"});
