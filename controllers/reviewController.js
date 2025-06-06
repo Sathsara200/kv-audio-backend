@@ -70,7 +70,6 @@ export function deleteReview
     }
 
     if(req.user.role == "customer"){
-
         if(req.user.email == email){
             Review.deleteOne
             ({email:email}).then(()=>{
