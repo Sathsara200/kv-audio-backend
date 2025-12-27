@@ -37,7 +37,7 @@ app.use((req,res,next)=>{
 });
 
 let mongoUrl =  
-  process.env.MONGO_URL;
+  process.env.MONGO_URI ||
 
 mongoose.connect(mongoUrl)
 
