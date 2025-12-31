@@ -13,51 +13,61 @@ import galleryRouter from "./routes/galleryRouter.js";
 
 dotenv.config();
 
-const app = express()
-app.use(cors());
+const app = express();
 
-app.use(bodyParser.json())
+/* ===================== CORS (FIXED) ===================== */
+app.use(cors({
+  origin: [
+    "https://kv-audio-frontend-eight.vercel.app"
+  ],
+  methods: ["GET", "POST", "PUT", "DELETE"],
+  allowedHeaders: ["Content-Type", "Authorization"],
+  credentials: true
+}));
 
-app.use((req,res,next)=>{
-    let token = req.header
-    ("Authorization")
+/* ===================== BODY PARSER ===================== */
+app.use(bodyParser.json());
 
-    if (token!=null){
-        token = token.replace("Bearer ","")
+/* ===================== JWT MIDDLEWARE ===================== */
+app.use((req, res, next) => {
+  let token = req.header("Authorization");
 
-        jwt.verify(token, process.env.JWT_SECRET,
-        (err,decoded)=>{
-            if(!err){
-                req.user = decoded;
-            }
-        });
-    }
-    next()
+  if (token) {
+    token = token.replace("Bearer ", "");
 
+    jwt.verify(token, process.env.JWT_SECRET, (err, decoded) => {
+      if (!err) {
+        req.user = decoded;
+      }
+    });
+  }
+
+  next();
 });
 
-let mongoUrl =  
-  process.env.MONGO_URL ||
+/* ===================== MONGODB ===================== */
+const mongoUrl = process.env.MONGO_URL;
 
-mongoose.connect(mongoUrl)
+mongoose.connect(mongoUrl);
 
-let connection = mongoose.connection
-
-connection.once("open",()=>{
-    console.log("MongoDB connection estabilished successfully")
-})
-
-
-app.use("/api/users",userRouter);
-app.use("/api/products",productRouter);
-app.use("/api/reviews",reviewRouter);
-app.use("/api/inquiries",inquiryRouter);
-app.use("/api/orders",orderRouter);
-app.use("/api/gallerys",galleryRouter);
-
-app.listen(3000,()=>{
-    console.log("Server is running on port 3000");
+mongoose.connection.once("open", () => {
+  console.log("MongoDB connected successfully");
 });
+
+/* ===================== ROUTES ===================== */
+app.use("/api/users", userRouter);
+app.use("/api/products", productRouter);
+app.use("/api/reviews", reviewRouter);
+app.use("/api/inquiries", inquiryRouter);
+app.use("/api/orders", orderRouter);
+app.use("/api/gallerys", galleryRouter);
+
+/* ===================== SERVER ===================== */
+const PORT = process.env.PORT || 3000;
+app.listen(PORT, () => {
+  console.log(`Server running on port ${PORT}`);
+});
+
 
 //test2@gmail.com 123 - customer
 //test1@gmail.com securepassword123 - admin
