@@ -13,7 +13,7 @@ const transport = nodemailer.createTransport({
   service: "gmail",
   auth: {
     user: "tharidusathsara200@gmail.com", // Gmail address from .env
-    pass:  wlnjwadaicuhmqas  // 16-character App Password from .env
+    pass:  "wlnjwadaicuhmqas"  // 16-character App Password from .env
   }
 });
 
