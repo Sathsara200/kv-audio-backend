@@ -33,7 +33,7 @@ export function registerUser(req, res) {
 
   const newUser = new User(data);
   newUser.save()
-    .then(() => res.json({ message: "User registered successfully" }))
+    .then(() => res.json({ message: "User registered successfully"}))
     .catch(() => res.status(500).json({ error: "User registration failed" }));
 }
 
@@ -56,7 +56,7 @@ export function loginUser(req, res) {
       profilePicture: user.profilePicture,
       phone: user.phone,
       emailVerified: user.emailVerified
-    }, "your_jwt_secret"); // Hardcoded JWT secret
+    }, process.env.JWT_SECRET); // Hardcoded JWT secret
 
     res.json({ message: "Login successful", token, user });
   });
