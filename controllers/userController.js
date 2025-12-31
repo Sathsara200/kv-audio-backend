@@ -8,12 +8,12 @@ import OTP from "../models/otp.js";
 
 dotenv.config();
 
-// --------------------- Nodemailer transporter ---------------------
+// --------------------- Nodemailer transporter (hardcoded credentials) ---------------------
 const transport = nodemailer.createTransport({
   service: "gmail",
   auth: {
-    user: "tharidusathsara200@gmail.com", // Gmail address from .env
-    pass:  "wlnjwadaicuhmqas"  // 16-character App Password from .env
+    user: "tharidusathsara200@gmail.com", // Hardcoded Gmail
+    pass: "wlnjwadaicuhmqas"             // Hardcoded 16-character App Password
   }
 });
 
@@ -56,7 +56,7 @@ export function loginUser(req, res) {
       profilePicture: user.profilePicture,
       phone: user.phone,
       emailVerified: user.emailVerified
-    }, process.env.JWT_SECRET);
+    }, "your_jwt_secret"); // Hardcoded JWT secret
 
     res.json({ message: "Login successful", token, user });
   });
@@ -139,7 +139,7 @@ export async function loginWithGoogle(req, res) {
       profilePicture: user.profilePicture,
       phone: user.phone,
       emailVerified: user.emailVerified
-    }, process.env.JWT_SECRET);
+    }, "your_jwt_secret");
 
     res.json({ message: "Login successful", token, user });
 
@@ -153,31 +153,28 @@ export async function loginWithGoogle(req, res) {
 export async function sendOTP(req, res) {
   if (!req.user) return res.status(403).json({ error: "Unauthorized" });
 
-  const otp = Math.floor(Math.random() * 9000) + 1000;
+  try {
+    const otp = Math.floor(Math.random() * 9000) + 1000;
 
-  const newOTP = new OTP({
-    email: req.user.email,
-    otp
-  });
+    const newOTP = new OTP({
+      email: req.user.email,
+      otp
+    });
+    await newOTP.save();
 
-  await newOTP.save();
+    const message = {
+      from: "tharidusathsara200@gmail.com",
+      to: req.user.email,
+      subject: "Your OTP Code",
+      text: `Your OTP code is ${otp}`
+    };
 
-  const message = {
-    from: process.env.EMAIL_USER,
-    to: req.user.email,
-    subject: "Your OTP Code",
-    text: `Your OTP code is ${otp}`
-  };
-
-  transport.sendMail(message, (err, info) => {
-    if (err) {
-      console.log("SendMail Error:", err);
-      return res.status(500).json({ error: "Failed to send OTP" });
-    } else {
-      console.log("OTP sent:", info.response);
-      return res.json({ message: "OTP sent successfully" });
-    }
-  });
+    await transport.sendMail(message);
+    res.json({ message: "OTP sent successfully" });
+  } catch (err) {
+    console.error("Send OTP error:", err);
+    res.status(500).json({ error: "Failed to send OTP" });
+  }
 }
 
 // --------------------- Verify OTP ---------------------
@@ -186,13 +183,19 @@ export async function verifyOTP(req, res) {
 
   const code = req.body.code;
 
-  const otp = await OTP.findOne({ email: req.user.email, otp: code });
-  if (!otp) return res.status(404).json({ error: "Invalid OTP" });
+  try {
+    const otp = await OTP.findOne({ email: req.user.email, otp: code });
+    if (!otp) return res.status(404).json({ error: "Invalid OTP" });
 
-  await OTP.deleteOne({ email: req.user.email, otp: code });
-  await User.updateOne({ email: req.user.email }, { emailVerified: true });
+    await OTP.deleteOne({ email: req.user.email, otp: code });
+    await User.updateOne({ email: req.user.email }, { emailVerified: true });
 
-  res.status(200).json({ message: "Email verified successfully" });
+    res.status(200).json({ message: "Email verified successfully" });
+  } catch (err) {
+    console.error("Verify OTP error:", err);
+    res.status(500).json({ error: "Failed to verify OTP" });
+  }
 }
+
 
 //wlnj wada icuh mqas
