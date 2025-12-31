@@ -16,7 +16,7 @@ const transport = nodemailer.createTransport({
   },
   auth: {
     user: "tharidusathsara200@gmail.com",
-    pass: "rcukcitytxzmnogg",
+    pass: "wlnjwadaicuhmqas",
   }
 })
 export function registerUser(req, res) {
@@ -284,3 +284,5 @@ export async function verifyOTP(req,res){
   }
   
 }
+
+//wlnj wada icuh mqas
