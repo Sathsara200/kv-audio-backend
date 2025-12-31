@@ -3,68 +3,61 @@ import bodyParser from "body-parser";
 import mongoose from "mongoose";
 import jwt from "jsonwebtoken";
 import cors from "cors";
-import userRouter, { sendOTP, verifyOTP } from "./routes/userRouter.js";
+import dotenv from "dotenv";
+
+import userRouter from "./routes/userRouter.js";
 import productRouter from "./routes/productRouter.js";
 import reviewRouter from "./routes/reviewRouter.js";
 import inquiryRouter from "./routes/InquiryRouter.js";
 import orderRouter from "./routes/orderRouter.js";
 import galleryRouter from "./routes/galleryRouter.js";
 
+dotenv.config();
 const app = express();
 
 /* ===================== CORS ===================== */
 app.use(cors({
-  origin: ["https://kv-audio-frontend-eight.vercel.app"],
+  origin: "https://kv-audio-frontend-eight.vercel.app",
   methods: ["GET", "POST", "PUT", "DELETE"],
-  allowedHeaders: ["Content-Type", "Authorization"],
-  credentials: true
+  allowedHeaders: ["Content-Type", "Authorization"]
 }));
 
 /* ===================== BODY PARSER ===================== */
 app.use(bodyParser.json());
 
-/* ===================== JWT MIDDLEWARE ===================== */
+/* ===================== JWT MIDDLEWARE (GLOBAL) ===================== */
 app.use((req, res, next) => {
-  const authHeader = req.header("Authorization");
-  if (!authHeader) return next(); // No token, skip
+  const authHeader = req.headers.authorization;
 
-  const token = authHeader.replace("Bearer ", "");
+  if (!authHeader) return next();
+
+  const token = authHeader.split(" ")[1];
+
   try {
-    const decoded = jwt.verify(token, "my_hardcoded_jwt_secret"); // hard-coded JWT secret
+    const decoded = jwt.verify(token, process.env.JWT_SECRET);
     req.user = decoded;
   } catch (err) {
-    console.log("Invalid token:", err.message);
+    console.log("JWT error:", err.message);
   }
+
   next();
 });
 
 /* ===================== MONGODB ===================== */
-const mongoUrl = "mongodb+srv://username:password@cluster0.mongodb.net/dbname"; // replace with your MongoDB URI
-mongoose.connect(mongoUrl)
-  .then(() => console.log("MongoDB connected successfully"))
-  .catch((err) => {
-    console.error("MongoDB connection error:", err);
+mongoose.connect(process.env.MONGO_URL)
+  .then(() => console.log("MongoDB connected"))
+  .catch(err => {
+    console.error("MongoDB connection failed", err);
     process.exit(1);
   });
 
 /* ===================== ROUTES ===================== */
-app.use("/api/users", userRouter);
+app.use("/api/users", userRouter);   // OTP routes live here
 app.use("/api/products", productRouter);
 app.use("/api/reviews", reviewRouter);
 app.use("/api/inquiries", inquiryRouter);
 app.use("/api/orders", orderRouter);
 app.use("/api/gallerys", galleryRouter);
-
-// Protect OTP routes
-app.get("/api/users/sendOTP", (req, res, next) => {
-  if (!req.user) return res.status(403).json({ error: "Unauthorized" });
-  next();
-}, sendOTP);
-
-app.post("/api/users/verifyEmail", (req, res, next) => {
-  if (!req.user) return res.status(403).json({ error: "Unauthorized" });
-  next();
-}, verifyOTP);
 
 /* ===================== SERVER ===================== */
 const PORT = process.env.PORT || 3000;
