@@ -12,10 +12,19 @@ dotenv.config();
 const transport = nodemailer.createTransport({
   service: "gmail",
   auth: {
-    user: "tharidusathsara200@gmail.com", // Hardcoded Gmail
-    pass: "wlnjwadaicuhmqas"             // Hardcoded 16-character App Password
+    user: "tharidusathsara200@gmail.com",
+    pass: "wlnjwadaicuhmqas"
   }
 });
+
+transport.verify((err) => {
+  if (err) {
+    console.error("Mail transporter error:", err);
+  } else {
+    console.log("Mail transporter ready");
+  }
+});
+
 
 // Verify transporter on server start
 transport.verify((error, success) => {
@@ -151,31 +160,45 @@ export async function loginWithGoogle(req, res) {
 
 // --------------------- Send OTP ---------------------
 export async function sendOTP(req, res) {
-  if (!req.user) return res.status(403).json({ error: "Unauthorized" });
+  if (!req.user) {
+    return res.status(403).json({ error: "Unauthorized" });
+  }
 
   try {
-    const otp = Math.floor(Math.random() * 9000) + 1000;
+    console.log("OTP request for:", req.user.email);
 
-    const newOTP = new OTP({
+    // 1️⃣ Generate OTP
+    const otp = Math.floor(1000 + Math.random() * 9000);
+
+    // 2️⃣ Save OTP to DB
+    await OTP.create({
       email: req.user.email,
       otp
     });
-    await newOTP.save();
 
-    const message = {
+    // 3️⃣ Create mail
+    const mailOptions = {
       from: "tharidusathsara200@gmail.com",
       to: req.user.email,
-      subject: "Your OTP Code",
+      subject: "Email Verification OTP",
       text: `Your OTP code is ${otp}`
     };
 
-    await transport.sendMail(message);
-    res.json({ message: "OTP sent successfully" });
+    // 4️⃣ Send mail
+    const info = await transport.sendMail(mailOptions);
+    console.log("Email sent:", info.response);
+
+    return res.json({ message: "OTP sent successfully" });
+
   } catch (err) {
-    console.error("Send OTP error:", err);
-    res.status(500).json({ error: "Failed to send OTP" });
+    console.error("SEND OTP FAILED ", err);
+    return res.status(500).json({
+      error: "Failed to send OTP",
+      details: err.message
+    });
   }
 }
+
 
 // --------------------- Verify OTP ---------------------
 export async function verifyOTP(req, res) {
